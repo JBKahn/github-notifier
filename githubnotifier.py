@@ -66,16 +66,15 @@ def get_github_user_info(username):
         except (urllib2.URLError, httplib.HTTPException):
             # Create a 'fake' user object in case of network errors
             user = {'login': username}
-   
-        
     else:
         # Use cached userinfo
         fp = open(info_cache, 'r')
         info = fp.read()
         user = json.loads(info)
 
-    user['avatar_path'] = os.path.abspath(os.path.join(CACHE_DIR,
-                                                       username))
+    user['avatar_path'] = os.path.abspath(
+        os.path.join(CACHE_DIR, username)
+    )
     if not os.path.exists(user['avatar_path']):
         # Fetch the user's gravatar
         if 'avatar_url' in user:
@@ -94,8 +93,9 @@ def get_github_user_info(username):
 
     return user
 
+
 def get_github_user_organizations(user):
-    organizations_cache = os.path.abspath(os.path.join(CACHE_DIR, 
+    organizations_cache = os.path.abspath(os.path.join(CACHE_DIR,
                                                        user + '_orgs.json'))
     if not os.path.exists(organizations_cache):
         try:
@@ -105,7 +105,7 @@ def get_github_user_organizations(user):
             obj = json.loads(resp)
             organizations = obj
 
-            # Cache the organizations 
+            # Cache the organizations
             fp = open(organizations_cache, 'w')
             fp.write(json.dumps(organizations))
             fp.close()
@@ -122,15 +122,16 @@ def get_github_user_organizations(user):
     # Get all organizations login names in an array
     orgs = []
     for item in organizations:
-         orgs.append(item['login'])
+        orgs.append(item['login'])
     return orgs
+
 
 class GtkGui(object):
     def __init__(self, upd):
         self.upd = upd
         self.logger = logging.getLogger('github-notifier')
 
-        icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 
+        icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
                                     'octocat.png'))
         self.systray_icon = gtk.status_icon_new_from_file(icon_path)
 
@@ -168,8 +169,8 @@ class GtkGui(object):
         menu_blacklist_projects.show()
         self.menu.append(menu_blacklist_projects)
 
-        menu_blacklist_organizations= gtk.CheckMenuItem('Exclude Blacklisted Organizations')
-        menu_blacklist_organizations.connect('activate', 
+        menu_blacklist_organizations = gtk.CheckMenuItem('Exclude Blacklisted Organizations')
+        menu_blacklist_organizations.connect('activate',
                                              self.blacklist_organizations)
         menu_blacklist_organizations.show()
         if self.upd.blacklist_organizations:
@@ -192,7 +193,7 @@ class GtkGui(object):
         self.menu_blacklist_authors = menu_blacklist_authors
         self.menu_blacklist_projects = menu_blacklist_projects
         self.menu_organizations = menu_organizations
-        self.menu_blacklist_organizations= menu_blacklist_organizations
+        self.menu_blacklist_organizations = menu_blacklist_organizations
 
         self.systray_icon.connect('popup_menu', self.show_menu)
 
@@ -279,7 +280,6 @@ class GtkGui(object):
             self.logger.info('Disabling feeds organizations')
             self.upd.organizations = False
 
-
     def blacklist_organizations(self, item):
         if item.active:
             self.logger.info('Enabling blacklist organizations')
@@ -288,12 +288,12 @@ class GtkGui(object):
             items = self.upd.acquire_items(config, "blacklist", "organizations")
             if items:
                 self.upd.blacklist_organizations = True
-                self.upd.list_blacklist_organizations= items
+                self.upd.list_blacklist_organizations = items
             else:
                 self.menu_blacklist_organizations.set_active(False)
         else:
             self.logger.info('Disabling blacklist organizations')
-            self.upd.blacklist_organizations= False
+            self.upd.blacklist_organizations = False
 
     def show_github(self, item):
         self.logger.info('Opening GitHub website')
@@ -306,10 +306,12 @@ class GtkGui(object):
         dlg.set_version(__version__)
         dlg.set_authors(['Andras Biczo <abiczo@gmail.com>',
                          'Hermes Ojeda Ruiz <hermes.ojeda@logicalbricks.com>'])
-        dlg.set_copyright('Copyright %s 2009 Andras Biczo' % 
+        dlg.set_copyright('Copyright %s 2009 Andras Biczo' %
                           unichr(169).encode('utf-8'))
-        gtk.about_dialog_set_url_hook(lambda widget, 
-                                             link: webbrowser.open(link))
+        gtk.about_dialog_set_url_hook(
+            lambda widget,
+            link: webbrowser.open(link)
+        )
         dlg.set_website('http://github.com/abiczo/github-notifier')
         dlg.set_website_label('Homepage')
         dlg.run()
@@ -328,7 +330,7 @@ class GithubFeedUpdatherThread(threading.Thread):
             'http://github.com/%s.private.atom?token=%s' % (user, token),
             'http://github.com/%s.private.actor.atom?token=%s' % (user, token),
         ]
-                
+
         if blog:
             self.logger.info('Observing the GitHub Blog')
             self.feeds.append(GITHUB_BLOG_URL)
@@ -349,17 +351,17 @@ class GithubFeedUpdatherThread(threading.Thread):
         self.list_blacklist_projects = []
         self.list_blacklist_organizations = []
         self.users_organizations = get_github_user_organizations(user)
-      
+
         list_organizations = self.users_organizations
         # Blacklist the organizations
         if self.organizations and self.blacklist_organizations:
-            list_organizations = filter(lambda x:x not in 
+            list_organizations = filter(lambda x:x not in
                                         self.list_blacklist_organizations,
                                         self.users_organizations)
 
         # Add all the organizations feeds to the feeds
         for organization in list_organizations:
-            self.feeds.append('https://github.com/organizations/%s/%s.private.atom?token=%s' 
+            self.feeds.append('https://github.com/organizations/%s/%s.private.atom?token=%s'
                               % (organization, user, token))
 
     def acquire_items(self, config, category, items):
@@ -381,10 +383,12 @@ class GithubFeedUpdatherThread(threading.Thread):
         # Don't allow fetch organizations when is disabled
         if not self.organizations and feed_url.find("organizations") >= 0:
             return []
-            
-        # Don't allow fetching blacklisted organizations 
-        if any(feed_url.find("organizations/%s" % org) 
-                  >= 0 for org in self.list_blacklist_organizations):
+
+        # Don't allow fetching blacklisted organizations
+        if any(
+            feed_url.find("organizations/%s" % org) >= 0
+            for org in self.list_blacklist_organizations
+        ):
             return []
 
         feed = feedparser.parse(feed_url)
@@ -418,7 +422,8 @@ class GithubFeedUpdatherThread(threading.Thread):
         for item in notifications:
             if not item['author'] in users:
                 users[item['author']] = get_github_user_info(
-                                            item['author'].split(" ")[0])
+                    item['author'].split(" ")[0]
+                )
 
             user = users[item['author']]
             if self.hyperlinks and 'link' in item:
@@ -464,14 +469,16 @@ class GithubFeedUpdatherThread(threading.Thread):
 
                 # Check to see if entry is a blacklisted author
                 if self.blacklist_authors and item['authors'][0]['name'] in self.list_blacklist_authors:
-                  self.logger.info('Ignoring blacklisted author entry')
-                  ignore_author = True
+                    self.logger.info('Ignoring blacklisted author entry')
+                    ignore_author = True
 
                 # Check to see if entry is a blacklisted project
                 if self.blacklist_projects:
                     for project in self.list_blacklist_projects:
-                        ignore_project = self.important_repository(item['link'],
-                                                                  project)
+                        ignore_project = self.important_repository(
+                            item['link'],
+                            project
+                        )
                         if ignore_project:
                             self.logger.info('Ignoring blacklisted project entry')
                             break
@@ -499,8 +506,9 @@ class GithubFeedUpdatherThread(threading.Thread):
             project_from_link = link_parts[4]
 
             # True if projects match when there is no owner, or if all match
-            return project == project_from_link and (not project_owner or
-                   project_owner == owner_from_link)
+            return project == project_from_link and (
+                not project_owner or project_owner == owner_from_link
+            )
         else:
             return False
 
@@ -548,7 +556,7 @@ def main():
                       action='store_true', dest='organizations', default=True,
                       help='consider notifications of all user\'s organizations')
     parser.add_option('-k', '--blacklist_organizations',
-                      action='store_true', dest='blacklist_organizations', 
+                      action='store_true', dest='blacklist_organizations',
                       default=False, help='filter out blacklisted organizations')
     parser.add_option('-p', '--important_projects',
                       action='store_true', dest='important_projects', default=False,
@@ -576,8 +584,10 @@ def main():
     else:
         logger.setLevel(logging.WARNING)
 
-    formatter = logging.Formatter('[%(levelname)s] %(asctime)s\n%(message)s',
-                                    datefmt='%d %b %H:%M:%S')
+    formatter = logging.Formatter(
+        '[%(levelname)s] %(asctime)s\n%(message)s',
+        datefmt='%d %b %H:%M:%S'
+    )
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
@@ -596,11 +606,15 @@ def main():
     if not os.path.isfile(CONFIG_FILE) or options.new_config:
         logger.warning('Making the config file {0}'.format(CONFIG_FILE))
         config_file = open(CONFIG_FILE, 'w')
-        config_file.write('[important]  # Separated by commas, projects (can' \
-                          ' be either <user>/<project> or <project>)\n')
+        config_file.write(
+            '[important]  # Separated by commas, projects (can' \
+            ' be either <user>/<project> or <project>)\n'
+        )
         config_file.write('authors=\nprojects=')
-        config_file.write('\n[blacklist]  # Separated by commas, projects (can' \
-                          ' be either <user>/<project> or <project>)\n')
+        config_file.write(
+            '\n[blacklist]  # Separated by commas, projects (can' \
+            ' be either <user>/<project> or <project>)\n'
+        )
         config_file.write('authors=\nprojects=')
         config_file.write('\norganizations=')
         config_file.close()
@@ -621,7 +635,7 @@ def main():
     if not user or not token:
         logger.error(
             '''Could not get GitHub username and token from git config
-            you can run 
+            you can run
                $git config --global github.user <username>
             and
                $git config --global github.token <token>
@@ -647,7 +661,7 @@ def main():
 
     DISPLAY_INTERVAL = 1  # In seconds
     if options.systray_icon:
-        gui = GtkGui(upd)
+        GtkGui(upd)
         gobject.timeout_add(DISPLAY_INTERVAL * 1000, display_notifications,
                             options.timeout)
         gtk.main()
