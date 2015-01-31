@@ -8,19 +8,31 @@ items. There is additional features like filtering only notifications from
 important authors and/or projects. The GitHub blog entries can also be seen in
 the notifications if desired.
 
+
+My changes
+----------
+
+For some reason, this code (as well as various supposedly working snippets I found online) didn't actually create the system tray icon.
+I reduced the code to just the shell aspect, replaced some code and dropped support for gtk2 and python 2.5/2.6.
+These changes were useful for me.
+
 Requirements
 ------------
 
-* python 2.5, 2.6 or 2.7
-* feedparser
-* simplejson (not needed for python 2.6)
+* python 2.7
+* feedparser & requestes (`pip install requirements.txt`)
+* python-gi (`sudo apt-get install python-gi`)
 
 Install
 -------
 
 First install the package dependencies (using Ubuntu)
 
-    sudo apt-get install python-setuptools python-gtk2 python-feedparser python-simplejson
+    sudo apt-get install python-setuptools python-gi
+
+Then install the python package dependencies avilabale on pip
+
+    pip install -r requirements.txt
 
 Then clone the repository and install the module:
 
